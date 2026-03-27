@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SchoolAppCoreMVC.Models;
-
+using AspNetCore.Reporting;
 namespace SchoolAppCoreMVC.Controllers
 {
     public class StudentsController : Controller
@@ -146,6 +146,31 @@ namespace SchoolAppCoreMVC.Controllers
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
+        }
+
+        // Action xuất file PDF
+        public IActionResult PrintReport()
+        {
+            // 1. Lấy danh sách sinh viên từ Database
+            var students = _context.Students.ToList();
+
+            // 2. Đường dẫn tới file thiết kế rdlc (Nằm ở thư mục gốc của project)
+            string rdlcFilePath = Path.Combine(Directory.GetCurrentDirectory(), "StudentReport.rdlc");
+
+            // 3. Đăng ký Encoding (Bắt buộc cho .NET Core khi dùng thư viện Reporting này)
+            System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+
+            // 4. Khởi tạo Report và nạp dữ liệu
+            LocalReport report = new LocalReport(rdlcFilePath);
+
+            // Lưu ý: Tên "StudentDataset" phải khớp 100% với tên Dataset bạn đặt trong file RDLC lúc nãy
+            report.AddDataSource("StudentDataset", students);
+
+            // 5. Xuất ra file PDF
+            var result = report.Execute(RenderType.Pdf, 1, null, "");
+
+            // Trả về file PDF cho người dùng tải xuống hoặc xem trực tiếp trên trình duyệt
+            return File(result.MainStream, "application/pdf", "DanhSachSinhVien.pdf");
         }
 
         private bool StudentExists(int id)
