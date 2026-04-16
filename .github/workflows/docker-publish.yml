@@ -22,6 +22,6 @@ jobs:
       uses: docker/build-push-action@v4
       with:
         context: .
-        file: ./SchoolAppCore/Dockerfile
+        file: file: ./Dockerfile
         push: true
         tags: ${{ secrets.DOCKER_USERNAME }}/myaspnetcoreapp:latest
